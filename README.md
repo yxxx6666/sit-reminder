@@ -5,7 +5,7 @@
 
 ## 🌐 在线使用
 
-👉 **[立即打开 SIT 起身动动](https://yxx6666.github.io/sit-reminder/)**
+👉 **[立即打开 SIT 起身动动](https://yxxx6666.github.io/sit-reminder/)**
 
 浏览器打开即用，无需下载安装。支持桌面端、平板和手机。
 
