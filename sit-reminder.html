@@ -1,0 +1,3220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>起身动动 · 久坐提醒助手</title>
+    <style>
+        /* ==================== 设计令牌 (Design Tokens) ==================== */
+        /* 间距基准: 4px 网格 */
+        /* 圆角层级: xs(6) sm(10) md(14) lg(18) xl(24) full(9999) */
+        /* 阴影层级: sm / md / lg / xl — 多层叠加营造精致深度感 */
+
+        :root {
+            /* 色彩 — 莫兰迪暖色系 */
+            --primary: #7d9e8c;
+            --primary-hover: #5d8470;
+            --primary-subtle: #f5f7f2;
+            --primary-muted: #a8c4b5;
+            --accent: #d4a574;
+            --accent-hover: #c08a52;
+            --accent-subtle: #faf6f0;
+            --danger: #c98989;
+            --danger-hover: #b06a6a;
+            --danger-subtle: #faf5f5;
+
+            --bg: #f8f5f0;
+            --bg-elevated: #fffdf9;
+            --bg-sunken: #f0ebe4;
+            --text: #3d3a36;
+            --text-secondary: #6b665e;
+            --text-tertiary: #9e968c;
+            --border: #e5dfd6;
+            --border-subtle: #f0ebe4;
+
+            /* 阴影体系 — 柔和暖调 */
+            --shadow-xs: 0 1px 2px rgba(60,50,40,0.04);
+            --shadow-sm: 0 1px 3px rgba(60,50,40,0.05), 0 1px 2px rgba(60,50,40,0.03);
+            --shadow-md: 0 4px 6px -1px rgba(60,50,40,0.06), 0 2px 4px -2px rgba(60,50,40,0.04);
+            --shadow-lg: 0 10px 24px -4px rgba(60,50,40,0.08), 0 4px 8px -2px rgba(60,50,40,0.04);
+            --shadow-xl: 0 20px 40px -8px rgba(60,50,40,0.10), 0 8px 16px -4px rgba(60,50,40,0.05);
+            --shadow-inner: inset 0 1px 2px rgba(60,50,40,0.05);
+            --shadow-ring: 0 0 0 3px rgba(125,158,140,0.20);
+
+            /* 圆角 */
+            --r-xs: 8px;
+            --r-sm: 12px;
+            --r-md: 16px;
+            --r-lg: 20px;
+            --r-xl: 28px;
+            --r-full: 9999px;
+
+            /* 间距 (4px 基准) */
+            --sp-1: 4px;
+            --sp-2: 8px;
+            --sp-3: 12px;
+            --sp-4: 16px;
+            --sp-5: 20px;
+            --sp-6: 24px;
+            --sp-8: 32px;
+            --sp-10: 40px;
+            --sp-12: 48px;
+
+            /* 动效 */
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --ease-out: cubic-bezier(0, 0, 0.2, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --duration-fast: 150ms;
+            --duration-normal: 250ms;
+            --duration-slow: 400ms;
+        }
+
+        /* ==================== 暗色主题 ==================== */
+        [data-theme="dark"] {
+            --primary: #8fb3a0;
+            --primary-hover: #7d9e8c;
+            --primary-subtle: #1a2420;
+            --primary-muted: #4a6b5a;
+            --accent: #d4a574;
+            --accent-hover: #c08a52;
+            --accent-subtle: #1f1810;
+            --danger: #c98989;
+            --danger-hover: #b06a6a;
+            --danger-subtle: #1f0a0a;
+
+            --bg: #1a1816;
+            --bg-elevated: #242220;
+            --bg-sunken: #121110;
+            --text: #e8e4df;
+            --text-secondary: #a8a29a;
+            --text-tertiary: #6b665e;
+            --border: #3a3632;
+            --border-subtle: #2a2826;
+
+            --shadow-xs: 0 1px 2px rgba(0,0,0,0.25);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
+            --shadow-lg: 0 10px 24px -4px rgba(0,0,0,0.35), 0 4px 8px -2px rgba(0,0,0,0.2);
+            --shadow-xl: 0 20px 40px -8px rgba(0,0,0,0.4), 0 8px 16px -4px rgba(0,0,0,0.25);
+            --shadow-inner: inset 0 1px 3px rgba(0,0,0,0.25);
+            --shadow-ring: 0 0 0 3px rgba(143,179,160,0.25);
+        }
+
+        /* ==================== 基础重置 ==================== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background var(--duration-slow) var(--ease), color var(--duration-slow) var(--ease);
+            line-height: 1.5;
+        }
+
+        /* ==================== 背景 — 精致微纹理 ==================== */
+        .bg-decoration {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        /* 用极淡的径向渐变替代模糊光斑，更克制 */
+        .bg-decoration::before {
+            content: '';
+            position: absolute;
+            top: -20%; right: -15%;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, var(--primary-subtle) 0%, transparent 70%);
+            opacity: 0.8;
+        }
+        .bg-decoration::after {
+            content: '';
+            position: absolute;
+            bottom: -15%; left: -10%;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, var(--accent-subtle) 0%, transparent 70%);
+            opacity: 0.5;
+        }
+
+        /* ==================== 布局 ==================== */
+        .container {
+            max-width: 440px;
+            margin: 0 auto;
+            padding: var(--sp-4) var(--sp-4) var(--sp-10);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ==================== 顶部栏 ==================== */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--sp-3) 0 var(--sp-4);
+        }
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+        }
+        .logo { font-size: 20px; line-height: 1; }
+        .brand {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+        }
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+        }
+        .icon-btn {
+            width: 34px; height: 34px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-sm);
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            transition: all var(--duration-fast) var(--ease);
+            box-shadow: var(--shadow-xs);
+        }
+        .icon-btn:hover {
+            background: var(--bg-sunken);
+            box-shadow: var(--shadow-sm);
+            border-color: var(--border);
+        }
+        .icon-btn:active {
+            transform: scale(0.95);
+            box-shadow: var(--shadow-xs);
+        }
+
+        /* ==================== 计时器卡片 ==================== */
+        .timer-card {
+            background: var(--bg-elevated);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-lg);
+            padding: var(--sp-8) var(--sp-5) var(--sp-6);
+            text-align: center;
+            margin-bottom: var(--sp-3);
+            position: relative;
+            overflow: hidden;
+            transition: all var(--duration-normal) var(--ease), background-color 0.5s var(--ease), box-shadow var(--duration-normal) var(--ease);
+        }
+        .timer-card:hover {
+            box-shadow: var(--shadow-xl);
+        }
+        .timer-card.highlight {
+            animation: cardHighlight 2s var(--ease);
+        }
+        @keyframes cardHighlight {
+            0% { background-color: var(--bg-elevated); }
+            15% { background-color: var(--danger-subtle); box-shadow: var(--shadow-xl), 0 0 0 2px var(--danger); }
+            100% { background-color: var(--bg-elevated); box-shadow: var(--shadow-lg); }
+        }
+
+        .timer-ring-wrap {
+            position: relative;
+            width: 196px;
+            height: 196px;
+            margin: 0 auto var(--sp-5);
+        }
+        .timer-ring-wrap svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        /* 呼吸光效 */
+        .timer-breath {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 180px;
+            height: 180px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--primary-muted) 0%, transparent 70%);
+            opacity: 0.4;
+            animation: breathe 6s ease-in-out infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .timer-breath.warning {
+            background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+        }
+        .timer-breath.danger {
+            background: radial-gradient(circle, var(--danger) 0%, transparent 70%);
+        }
+        @keyframes breathe {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.5; }
+        }
+        .ring-bg {
+            fill: none;
+            stroke: var(--border);
+            stroke-width: 5;
+        }
+        .ring-progress {
+            fill: none;
+            stroke: var(--primary);
+            stroke-width: 5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s linear, stroke var(--duration-normal) var(--ease);
+            filter: drop-shadow(0 0 6px rgba(125,158,140,0.3));
+        }
+        .ring-progress.warning { stroke: var(--accent); filter: drop-shadow(0 0 6px rgba(212,165,116,0.3)); }
+        .ring-progress.danger { stroke: var(--danger); filter: drop-shadow(0 0 6px rgba(201,137,137,0.3)); }
+
+        .timer-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .timer-digits {
+            font-size: 42px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+            color: var(--text);
+            letter-spacing: -1.5px;
+        }
+        .timer-status {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: var(--sp-1);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* ==================== 控制按钮 ==================== */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-4);
+        }
+        .btn {
+            border: none;
+            border-radius: var(--r-sm);
+            padding: var(--sp-2) var(--sp-5);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--sp-1);
+            font-family: inherit;
+            letter-spacing: 0.2px;
+            position: relative;
+            user-select: none;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn:focus-visible {
+            outline: none;
+            box-shadow: var(--shadow-ring);
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+            box-shadow: var(--shadow-sm), 0 2px 8px rgba(16,185,129,0.2);
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: var(--shadow-md), 0 4px 12px rgba(16,185,129,0.25);
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+            box-shadow: var(--shadow-xs);
+        }
+        .btn-ghost {
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-xs);
+        }
+        .btn-ghost:hover {
+            background: var(--primary-subtle);
+            border-color: var(--primary-muted);
+            color: var(--primary-hover);
+            box-shadow: var(--shadow-sm);
+        }
+        .btn-ghost:active {
+            background: var(--bg-sunken);
+            transform: translateY(0) scale(0.98);
+        }
+        .btn-accent {
+            background: var(--accent);
+            color: #fff;
+            box-shadow: var(--shadow-sm), 0 2px 8px rgba(245,158,11,0.2);
+        }
+        .btn-accent:hover {
+            background: var(--accent-hover);
+            box-shadow: var(--shadow-md), 0 4px 12px rgba(245,158,11,0.25);
+            transform: translateY(-1px);
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+            box-shadow: var(--shadow-sm), 0 2px 8px rgba(239,68,68,0.2);
+        }
+        .btn-danger:hover { background: var(--danger-hover); }
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+            transform: none !important;
+        }
+        .btn-sm { padding: var(--sp-2) var(--sp-4); font-size: 12px; }
+
+        /* ==================== 时长选择 ==================== */
+        .interval-picker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--sp-2);
+            flex-wrap: wrap;
+        }
+        .interval-chip {
+            padding: 5px var(--sp-3);
+            border-radius: var(--r-full);
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            font-family: inherit;
+        }
+        .interval-chip:hover {
+            border-color: var(--primary-muted);
+            color: var(--primary-hover);
+            background: var(--primary-subtle);
+        }
+        .interval-chip.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: var(--shadow-sm), 0 2px 8px rgba(16,185,129,0.2);
+        }
+        .interval-custom {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        .interval-custom input {
+            width: 48px;
+            padding: 4px var(--sp-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r-full);
+            text-align: center;
+            font-size: 12px;
+            color: var(--text);
+            background: var(--bg-elevated);
+            outline: none;
+            font-family: inherit;
+            transition: all var(--duration-fast) var(--ease);
+            box-shadow: var(--shadow-xs);
+        }
+        .interval-custom input:focus {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-ring);
+        }
+        .interval-custom span { font-size: 11px; color: var(--text-tertiary); }
+
+        /* ==================== 统计卡片 ==================== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-3);
+        }
+        .stat-box {
+            background: var(--bg-elevated);
+            border-radius: var(--r-md);
+            border: 1px solid var(--border-subtle);
+            padding: var(--sp-4) var(--sp-2);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: all var(--duration-normal) var(--ease);
+        }
+        .stat-box:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--border);
+        }
+        .stat-num {
+            font-size: 24px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+        .stat-num.green { color: var(--primary); }
+        .stat-num.amber { color: var(--accent); }
+        .stat-num.red { color: var(--danger); }
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+
+        /* ==================== 通知权限横幅 ==================== */
+        .notif-banner {
+            background: var(--primary-subtle);
+            border: 1px solid var(--primary-muted);
+            border-radius: var(--r-md);
+            padding: var(--sp-3) var(--sp-4);
+            margin-bottom: var(--sp-3);
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            font-size: 13px;
+            color: var(--primary-hover);
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            box-shadow: var(--shadow-xs);
+        }
+        .notif-banner:hover {
+            box-shadow: var(--shadow-sm);
+            transform: translateY(-1px);
+        }
+        .notif-banner:active { transform: translateY(0); }
+        .notif-banner .notif-icon { font-size: 16px; flex-shrink: 0; }
+        .notif-banner .notif-text { flex: 1; }
+        .notif-banner .notif-text strong { font-weight: 600; }
+        .notif-banner .notif-arrow { font-size: 14px; color: var(--text-tertiary); }
+        .notif-banner.hidden { display: none; }
+
+        /* ==================== 护眼提示 ==================== */
+        .eye-tip {
+            position: fixed;
+            bottom: var(--sp-5);
+            right: var(--sp-5);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-md);
+            padding: var(--sp-3) var(--sp-4);
+            box-shadow: var(--shadow-lg);
+            font-size: 13px;
+            color: var(--text-secondary);
+            display: none;
+            align-items: center;
+            gap: var(--sp-2);
+            z-index: 100;
+            animation: slideInRight var(--duration-normal) var(--ease-out);
+            cursor: pointer;
+            transition: opacity var(--duration-fast) var(--ease);
+        }
+        .eye-tip.show { display: flex; }
+        .eye-tip .eye-icon { font-size: 16px; }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ==================== 设置面板 ==================== */
+        .settings-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(4px);
+            z-index: 500;
+            display: none;
+            animation: fadeIn var(--duration-normal) var(--ease);
+        }
+        .settings-overlay.open { display: block; }
+        .settings-drawer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            max-width: 440px;
+            margin: 0 auto;
+            background: var(--bg-elevated);
+            border-radius: var(--r-xl) var(--r-xl) 0 0;
+            border: 1px solid var(--border-subtle);
+            border-bottom: none;
+            padding: var(--sp-3) var(--sp-5);
+            padding-bottom: calc(var(--sp-8) + env(safe-area-inset-bottom, 20px));
+            z-index: 501;
+            display: none;
+            animation: slideUpDrawer var(--duration-slow) var(--ease-out);
+            max-height: 92vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            box-shadow: var(--shadow-xl);
+        }
+        .settings-drawer.open { display: block; }
+        @keyframes slideUpDrawer {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        .settings-handle {
+            width: 32px; height: 4px;
+            background: var(--border);
+            border-radius: var(--r-full);
+            margin: 0 auto var(--sp-5);
+        }
+        .settings-title {
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: var(--sp-5);
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+        }
+        .setting-group { margin-bottom: var(--sp-5); }
+        .setting-group-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: var(--sp-2);
+        }
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--sp-3) 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-info h4 { font-size: 13px; font-weight: 600; margin-bottom: 1px; }
+        .setting-info p { font-size: 11px; color: var(--text-tertiary); }
+        .setting-control select,
+        .setting-control input[type="number"] {
+            border: 1px solid var(--border);
+            border-radius: var(--r-xs);
+            padding: var(--sp-2) var(--sp-2);
+            font-size: 13px;
+            color: var(--text);
+            background: var(--bg);
+            outline: none;
+            width: 72px;
+            text-align: center;
+            font-family: inherit;
+            box-shadow: var(--shadow-xs);
+            transition: all var(--duration-fast) var(--ease);
+        }
+        .setting-control select:focus,
+        .setting-control input:focus {
+            border-color: var(--primary);
+            box-shadow: var(--shadow-ring);
+        }
+
+        /* 开关 — 纯 CSS 实现，不依赖 overflow:hidden */
+        .toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            cursor: pointer;
+            flex-shrink: 0;
+            display: inline-block;
+        }
+        .toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            position: absolute;
+        }
+        .toggle-track {
+            display: block;
+            width: 44px;
+            height: 24px;
+            background: var(--border);
+            border-radius: 12px;
+            transition: background var(--duration-normal) var(--ease);
+            position: relative;
+        }
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 2px;
+            top: 2px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform var(--duration-normal) var(--ease);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .toggle input:checked + .toggle-track {
+            background: var(--primary);
+        }
+        .toggle input:checked + .toggle-track::after {
+            transform: translateX(20px);
+        }
+
+        /* ==================== 提醒弹窗 ==================== */
+        .reminder-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            z-index: 800;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: var(--sp-5);
+        }
+        .reminder-overlay.open { display: flex; animation: fadeIn var(--duration-normal) var(--ease); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .reminder-modal {
+            background: var(--bg-elevated);
+            border-radius: var(--r-xl);
+            border: 1px solid var(--border-subtle);
+            padding: var(--sp-6) var(--sp-5) var(--sp-5);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            animation: modalPop var(--duration-slow) var(--ease-spring);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.9) translateY(16px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .reminder-modal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--danger), var(--accent), var(--primary));
+        }
+        .reminder-emoji {
+            font-size: 44px;
+            margin-bottom: var(--sp-3);
+            animation: gentleBounce 2.5s ease-in-out infinite;
+        }
+        @keyframes gentleBounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .reminder-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: var(--sp-2);
+            letter-spacing: -0.3px;
+        }
+        .reminder-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: var(--sp-4);
+            line-height: 1.6;
+        }
+        .reminder-exercise {
+            background: var(--primary-subtle);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-sm);
+            padding: var(--sp-3) var(--sp-4);
+            text-align: left;
+            margin-bottom: var(--sp-2);
+        }
+        .reminder-exercise h4 {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--primary-hover);
+            margin-bottom: var(--sp-1);
+        }
+        .reminder-exercise p {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+        .reminder-water {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--sp-4);
+        }
+        .reminder-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-2);
+        }
+        .reminder-actions .btn { width: 100%; justify-content: center; }
+        .reminder-secondary-actions {
+            display: flex;
+            gap: var(--sp-2);
+            margin-top: var(--sp-1);
+        }
+        .reminder-secondary-actions .btn { flex: 1; justify-content: center; }
+
+        /* ==================== 478 呼吸法 ==================== */
+        .breath-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.75);
+            backdrop-filter: blur(12px);
+            z-index: 900;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .breath-overlay.open { display: flex; animation: fadeIn var(--duration-slow) var(--ease); }
+        .breath-circle-wrap {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .breath-circle {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(16,185,129,0.5), rgba(16,185,129,0.08));
+            border: 2px solid var(--primary);
+            transition: all 1s var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .breath-circle.inhale {
+            width: 170px;
+            height: 170px;
+            background: radial-gradient(circle, rgba(16,185,129,0.4), rgba(16,185,129,0.03));
+            border-color: var(--primary);
+            box-shadow: 0 0 40px rgba(16,185,129,0.15);
+        }
+        .breath-circle.hold {
+            width: 170px;
+            height: 170px;
+            background: radial-gradient(circle, rgba(245,158,11,0.35), rgba(245,158,11,0.03));
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(245,158,11,0.15);
+        }
+        .breath-circle.exhale {
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle, rgba(59,130,246,0.35), rgba(59,130,246,0.03));
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59,130,246,0.1);
+        }
+        .breath-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+            z-index: 1;
+        }
+        .breath-timer-text {
+            font-size: 28px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: var(--sp-5);
+            font-variant-numeric: tabular-nums;
+        }
+        .breath-phase {
+            font-size: 13px;
+            color: rgba(255,255,255,0.6);
+            margin-top: var(--sp-2);
+        }
+        .breath-round {
+            font-size: 12px;
+            color: rgba(255,255,255,0.4);
+            margin-top: var(--sp-1);
+        }
+        .breath-close {
+            position: absolute;
+            top: var(--sp-5);
+            right: var(--sp-5);
+            width: 36px; height: 36px;
+            border-radius: var(--r-sm);
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background var(--duration-fast) var(--ease);
+        }
+        .breath-close:hover { background: rgba(255,255,255,0.15); }
+
+        /* ==================== 庆祝动画 ==================== */
+        .celebration-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 850;
+            pointer-events: none;
+            display: none;
+        }
+        .celebration-overlay.show { display: block; }
+        .confetti {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+            animation: confettiFall 2.5s var(--ease-out) forwards;
+        }
+        @keyframes confettiFall {
+            0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+            100% { opacity: 0; transform: translateY(100vh) rotate(720deg) scale(0.2); }
+        }
+        .celebration-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: var(--bg-elevated);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--border-subtle);
+            padding: var(--sp-6) var(--sp-8);
+            text-align: center;
+            z-index: 851;
+            box-shadow: var(--shadow-xl);
+            animation: celebPop var(--duration-slow) var(--ease-spring) forwards;
+        }
+        @keyframes celebPop {
+            from { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        .celeb-emoji { font-size: 40px; margin-bottom: var(--sp-2); }
+        .celeb-text { font-size: 15px; font-weight: 700; color: var(--primary); }
+        .celeb-sub { font-size: 12px; color: var(--text-tertiary); margin-top: var(--sp-1); }
+
+        /* ==================== 分享卡片弹窗 ==================== */
+        .share-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 900;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+        .share-overlay.show { display: flex; }
+        .share-modal {
+            background: var(--bg-elevated);
+            border-radius: var(--r-lg);
+            padding: var(--sp-4);
+            text-align: center;
+            position: relative;
+        }
+        .share-close {
+            position: absolute;
+            top: 8px; right: 12px;
+            font-size: 24px;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            line-height: 1;
+        }
+        .share-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: var(--sp-3);
+        }
+        #shareCanvas {
+            border-radius: var(--r-md);
+            display: block;
+            margin: 0 auto;
+        }
+        .share-tip {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: var(--sp-2);
+        }
+
+        /* ==================== Toast ==================== */
+        .toast-wrap {
+            position: fixed;
+            top: var(--sp-4);
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--sp-2);
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-sm);
+            padding: var(--sp-2) var(--sp-4);
+            box-shadow: var(--shadow-lg);
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+            animation: toastIn var(--duration-normal) var(--ease-out);
+            pointer-events: auto;
+            white-space: nowrap;
+            color: var(--text-secondary);
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-12px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ==================== 页脚 ==================== */
+        .footer {
+            text-align: center;
+            padding: var(--sp-4) 0 var(--sp-2);
+            font-size: 11px;
+            color: var(--text-tertiary);
+            letter-spacing: 0.2px;
+        }
+
+        /* ==================== 脊椎状态指示器 ==================== */
+        .spine-widget {
+            position: fixed;
+            bottom: var(--sp-5);
+            right: var(--sp-5);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        @media (min-width: 769px) {
+            .spine-widget { display: flex; }
+        }
+        .spine-svg {
+            opacity: 0.5;
+            cursor: default;
+            filter: drop-shadow(0 1px 3px rgba(0,0,0,0.08));
+        }
+        .spine-vert {
+            fill: var(--primary);
+            transition: fill 2s var(--ease);
+        }
+        .spine-vert.warning { fill: var(--accent); }
+        .spine-vert.danger { fill: var(--danger); }
+        .spine-bubble {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-full);
+            padding: 3px 10px;
+            white-space: nowrap;
+            box-shadow: var(--shadow-sm);
+            opacity: 0;
+            transform: translateY(4px);
+            transition: all 0.4s var(--ease);
+            pointer-events: none;
+        }
+        .spine-bubble.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .spine-bubble.warning { color: var(--accent-hover); border-color: var(--accent); }
+        .spine-bubble.danger { color: var(--danger-hover); border-color: var(--danger); }
+
+        /* ==================== 响应式 ==================== */
+        @media (max-width: 380px) {
+            .timer-digits { font-size: 36px; }
+            .timer-ring-wrap { width: 170px; height: 170px; }
+            .stat-num { font-size: 20px; }
+            .container { padding: var(--sp-3) var(--sp-3) var(--sp-8); }
+            .stats-row-four .stat-num { font-size: 17px; }
+            .stats-row-four .stat-label { font-size: 9px; }
+            .activity-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ==================== 标签闪烁 ==================== */
+        .title-flash { animation: titleFlash 1s ease-in-out 3; }
+        @keyframes titleFlash {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ==================== 滚动条美化 ==================== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+        /* ==================== 休息倒计时 ==================== */
+        .break-countdown-wrap {
+            margin-bottom: var(--sp-4);
+        }
+        .break-countdown-digits {
+            font-size: 36px;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            color: var(--primary);
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+        .break-countdown-label {
+            font-size: 11px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        .break-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--border);
+            border-radius: var(--r-full);
+            margin-top: var(--sp-2);
+            overflow: hidden;
+        }
+        .break-progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: var(--r-full);
+            transition: width 1s linear;
+        }
+
+        /* ==================== 活动列表 ==================== */
+        .activity-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: var(--sp-3);
+        }
+        .activity-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 6px 7px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            background: transparent;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            user-select: none;
+        }
+        .activity-item:hover {
+            border-color: var(--primary-muted);
+            background: var(--primary-subtle);
+        }
+        .activity-item:active {
+            transform: scale(0.97);
+        }
+        .activity-item.done {
+            background: var(--primary-subtle);
+            border-color: var(--primary);
+        }
+        .activity-item-name {
+            flex: 1;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text);
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .activity-item-check {
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            border-radius: var(--r-full);
+            border: 2px solid var(--border);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--duration-fast) var(--ease);
+        }
+        .activity-item.done .activity-item-check {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        .activity-item.done .activity-item-check::after {
+            content: '';
+            width: 4px;
+            height: 7px;
+            border: solid #fff;
+            border-width: 0 1.5px 1.5px 0;
+            transform: rotate(45deg) translate(-0.5px, -0.5px);
+        }
+        .exercise-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            margin-bottom: var(--sp-3);
+            cursor: pointer;
+            transition: opacity var(--duration-fast) var(--ease);
+        }
+        .exercise-link:hover { opacity: 0.7; }
+        .exercise-link svg { width: 12px; height: 12px; }
+
+        /* ==================== 休息操作栏 ==================== */
+        .break-actions {
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-2);
+            position: sticky;
+            bottom: 0;
+            background: var(--bg-elevated);
+            padding-top: var(--sp-2);
+        }
+        .break-actions .btn { width: 100%; justify-content: center; }
+        .break-secondary-actions {
+            display: flex;
+            gap: var(--sp-2);
+        }
+        .break-secondary-actions .btn { flex: 1; justify-content: center; }
+
+        /* ==================== 跳过链接 & 弹窗 ==================== */
+        .skip-link {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: var(--sp-1) 0;
+            transition: color var(--duration-fast) var(--ease);
+        }
+        .skip-link:hover { color: var(--text-secondary); }
+        .skip-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(4px);
+            z-index: 950;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: var(--sp-5);
+        }
+        .skip-overlay.show { display: flex; animation: fadeIn var(--duration-normal) var(--ease); }
+        .skip-modal {
+            background: var(--bg-elevated);
+            border-radius: var(--r-lg);
+            border: 1px solid var(--border-subtle);
+            padding: var(--sp-5);
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+            box-shadow: var(--shadow-xl);
+            animation: modalPop var(--duration-slow) var(--ease-spring);
+        }
+        .skip-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: var(--sp-4);
+        }
+        .skip-options {
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-4);
+        }
+        .skip-option {
+            display: block;
+            width: 100%;
+            padding: var(--sp-3) var(--sp-4);
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-sm);
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text);
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            font-family: inherit;
+        }
+        .skip-option:hover {
+            border-color: var(--primary-muted);
+            background: var(--primary-subtle);
+        }
+        .skip-option:active { transform: scale(0.97); }
+        .skip-cancel {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            cursor: pointer;
+            padding: var(--sp-1);
+        }
+        .skip-cancel:hover { color: var(--text-secondary); }
+
+        /* ==================== 统计卡片（4列） ==================== */
+        .stats-row-four {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-3);
+        }
+        .stats-row-four .stat-box {
+            padding: var(--sp-3) var(--sp-1);
+        }
+        .stats-row-four .stat-num { font-size: 20px; }
+        .stats-row-four .stat-label { font-size: 10px; }
+
+        /* ==================== 本周趋势 ==================== */
+        .week-chart {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-md);
+            padding: var(--sp-4);
+            margin-bottom: var(--sp-3);
+        }
+        .week-chart-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: var(--sp-3);
+        }
+        .week-chart-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            height: 80px;
+            gap: 6px;
+        }
+        .week-bar-wrap {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .week-bar {
+            width: 100%;
+            max-width: 28px;
+            border-radius: var(--r-xs) var(--r-xs) 0 0;
+            background: var(--primary-muted);
+            transition: height 0.5s var(--ease-spring);
+            min-height: 4px;
+        }
+        .week-bar.today {
+            background: var(--primary);
+            box-shadow: 0 0 8px rgba(125,158,140,0.3);
+        }
+        .week-bar-num {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .week-bar-label {
+            font-size: 10px;
+            color: var(--text-tertiary);
+        }
+
+        /* ==================== 跳过统计 ==================== */
+        .skip-stat {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--sp-2);
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-bottom: var(--sp-3);
+            padding: var(--sp-2) var(--sp-3);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-sm);
+        }
+        .skip-stat strong { color: var(--accent); }
+
+        /* ==================== 今日活动记录 ==================== */
+        .break-log-section {
+            margin-bottom: var(--sp-3);
+        }
+        .break-log-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: var(--sp-2);
+            display: flex;
+            align-items: center;
+            gap: var(--sp-1);
+        }
+        .break-log-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-2);
+        }
+        .break-log-item {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-sm);
+            padding: var(--sp-3) var(--sp-4);
+            box-shadow: var(--shadow-xs);
+        }
+        .break-log-time {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-tertiary);
+            margin-bottom: var(--sp-1);
+        }
+        .break-log-activities {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .break-log-activities span {
+            display: inline-block;
+            background: var(--primary-subtle);
+            color: var(--primary-hover);
+            padding: 1px var(--sp-2);
+            border-radius: var(--r-full);
+            font-size: 11px;
+            margin: 2px 2px 2px 0;
+        }
+        .break-log-empty {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-align: center;
+            padding: var(--sp-4);
+        }
+
+        /* ==================== 办公室运动入口 ==================== */
+        .office-exercise-card {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-md);
+            padding: var(--sp-4);
+            margin-bottom: var(--sp-3);
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+            color: inherit;
+            transition: all var(--duration-fast) var(--ease);
+            cursor: pointer;
+        }
+        .office-exercise-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-muted);
+            transform: translateY(-1px);
+        }
+        .office-exercise-card:active {
+            transform: translateY(0) scale(0.98);
+        }
+        .office-exercise-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--r-sm);
+            background: var(--primary-subtle);
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .office-exercise-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .office-exercise-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .office-exercise-desc {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            margin-top: 2px;
+        }
+        .office-exercise-arrow {
+            color: var(--text-tertiary);
+            flex-shrink: 0;
+        }
+
+        /* ==================== 久坐研究报告折叠面板 ==================== */
+        .research-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--sp-3);
+            overflow: hidden;
+            transition: box-shadow var(--duration-normal) var(--ease);
+        }
+        .research-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .research-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--sp-4);
+            cursor: pointer;
+            transition: background var(--duration-fast) var(--ease);
+            user-select: none;
+        }
+        .research-header:hover {
+            background: var(--bg-sunken);
+        }
+        .research-header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .research-header-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--r-xs);
+            background: var(--primary-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .research-header-icon svg {
+            width: 14px;
+            height: 14px;
+            stroke: var(--primary);
+        }
+        .research-arrow {
+            font-size: 10px;
+            color: var(--text-tertiary);
+            transition: transform var(--duration-normal) var(--ease);
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--r-xs);
+            background: var(--bg-sunken);
+        }
+        .research-card.open .research-arrow {
+            transform: rotate(180deg);
+        }
+        .research-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height var(--duration-slow) var(--ease);
+        }
+        .research-card.open .research-body {
+            max-height: 600px;
+        }
+        .research-content {
+            padding: 0 var(--sp-4) var(--sp-4);
+        }
+        .research-content ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: var(--sp-3);
+        }
+        .research-item {
+            display: flex;
+            gap: var(--sp-3);
+            align-items: flex-start;
+            padding: var(--sp-3);
+            background: var(--bg);
+            border-radius: var(--r-sm);
+            border: 1px solid var(--border-subtle);
+            transition: border-color var(--duration-fast) var(--ease);
+        }
+        .research-item:hover {
+            border-color: var(--border);
+        }
+        .research-item-num {
+            width: 22px;
+            height: 22px;
+            border-radius: var(--r-full);
+            background: var(--primary-subtle);
+            color: var(--primary);
+            font-size: 11px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .research-item-text {
+            font-size: 12px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+        .research-item-text strong {
+            color: var(--text);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 背景装饰 -->
+<div class="bg-decoration"></div>
+
+<div class="container">
+    <!-- 顶部栏 -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <span class="logo">SIT</span>
+            <span class="brand">起身动动</span>
+        </div>
+        <div class="top-bar-right">
+            <button class="icon-btn" id="btnTheme" onclick="toggleTheme()" title="切换主题">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <button class="icon-btn" id="btnSettings" onclick="openSettings()" title="设置">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 通知权限横幅 -->
+    <div class="notif-banner" id="notifBanner" onclick="requestNotifPermission()">
+        <span class="notif-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </span>
+        <span class="notif-text"><strong>开启桌面通知</strong>，离开页面也能收到提醒</span>
+        <span class="notif-arrow">›</span>
+    </div>
+
+    <!-- 计时器卡片 -->
+    <div class="timer-card" id="timerCard">
+        <div class="timer-ring-wrap">
+            <div class="timer-breath" id="timerBreath"></div>
+            <svg viewBox="0 0 200 200">
+                <circle class="ring-bg" cx="100" cy="100" r="90"></circle>
+                <circle class="ring-progress" id="ringProgress" cx="100" cy="100" r="90"
+                    stroke-dasharray="565.487" stroke-dashoffset="0"></circle>
+            </svg>
+            <div class="timer-center">
+                <div class="timer-digits" id="timerDigits">45:00</div>
+                <div class="timer-status" id="timerStatus">计时中</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary btn-sm" id="btnStart" onclick="handleStart()">开始</button>
+            <button class="btn btn-ghost btn-sm" id="btnPause" onclick="togglePause()" disabled>暂停</button>
+            <button class="btn btn-ghost btn-sm" id="btnReset" onclick="resetTimer()">重置</button>
+        </div>
+
+        <div class="interval-picker" id="intervalPicker">
+            <button class="interval-chip" data-val="30" onclick="setInterval_(30)">30分钟</button>
+            <button class="interval-chip active" data-val="45" onclick="setInterval_(45)">45分钟</button>
+            <button class="interval-chip" data-val="60" onclick="setInterval_(60)">60分钟</button>
+            <div class="interval-custom">
+                <input type="number" id="customInterval" min="5" max="7200" placeholder="秒数"
+                    onchange="setCustomInterval()" onfocus="this.select()">
+                <span>秒</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计 -->
+    <div class="stats-row-four">
+        <div class="stat-box">
+            <div class="stat-num green" id="statReminders">0</div>
+            <div class="stat-label">今日提醒</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num amber" id="statCompleted">0</div>
+            <div class="stat-label">已休息</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num green" id="statActivities">0</div>
+            <div class="stat-label">已完成活动</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-num red" id="statStreak">0</div>
+            <div class="stat-label">连续天数</div>
+        </div>
+    </div>
+
+    <!-- 本周趋势 -->
+    <div class="week-chart">
+        <div class="week-chart-title">本周趋势</div>
+        <div class="week-chart-bars" id="weekChartBars"></div>
+    </div>
+
+    <!-- 今日跳过次数 -->
+    <div class="skip-stat" id="skipStat" style="display:none;">
+        <span class="skip-stat-icon">⏭️</span>
+        <span>今日跳过 <strong id="skipCount">0</strong> 次</span>
+    </div>
+
+    <!-- 分享卡片按钮 -->
+    <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3);">
+        <button class="btn btn-primary" onclick="generateShareCard()" style="flex:1;">
+            生成今日卡片
+        </button>
+        <button class="btn btn-ghost" onclick="generateWeeklyReport()" style="flex:1;">
+            本周健康报告
+        </button>
+    </div>
+
+    <!-- 办公室运动入口 -->
+    <a class="office-exercise-card" href="exercises.html">
+        <div class="office-exercise-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="office-exercise-text">
+            <div class="office-exercise-title">办公室运动指南</div>
+            <div class="office-exercise-desc">15 个工位微运动，缓解肩颈腰背疲劳</div>
+        </div>
+        <div class="office-exercise-arrow">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </div>
+    </a>
+
+    <!-- 久坐研究报告 -->
+    <div class="research-card" id="researchCard" onclick="toggleResearch()">
+        <div class="research-header">
+            <div class="research-header-left">
+                <div class="research-header-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                </div>
+                久坐研究报告
+            </div>
+            <div class="research-arrow">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+        </div>
+        <div class="research-body">
+            <div class="research-content">
+                <ul>
+                    <li class="research-item">
+                        <div class="research-item-num">1</div>
+                        <div class="research-item-text"><strong>每坐45-60分钟，起身活动2-3分钟</strong>，可显著降低心血管疾病风险（美国糖尿病学会，2023）</div>
+                    </li>
+                    <li class="research-item">
+                        <div class="research-item-num">2</div>
+                        <div class="research-item-text"><strong>每天累计久坐超过8小时</strong>，死亡风险增加15%（哥伦比亚大学研究）</div>
+                    </li>
+                    <li class="research-item">
+                        <div class="research-item-num">3</div>
+                        <div class="research-item-text"><strong>每30分钟起身走动2分钟</strong>，可有效改善血糖控制和血压（澳大利亚贝克研究所）</div>
+                    </li>
+                    <li class="research-item">
+                        <div class="research-item-num">4</div>
+                        <div class="research-item-text"><strong>短暂的微运动</strong>（如站立、拉伸）比集中长时间运动更有利于代谢健康</div>
+                    </li>
+                    <li class="research-item">
+                        <div class="research-item-num">5</div>
+                        <div class="research-item-text"><strong>久坐是"新型吸烟"</strong>——即使有规律运动习惯，长时间久坐仍会独立增加健康风险</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 今日活动记录 -->
+    <div class="break-log-section">
+        <div class="break-log-title">今日活动记录</div>
+        <div class="break-log-list" id="breakLogList">
+            <div class="break-log-empty">暂无记录</div>
+        </div>
+    </div>
+
+    <footer class="footer">每一次起身，都是对健康的投资</footer>
+</div>
+
+<!-- 护眼提示 -->
+<div class="eye-tip" id="eyeTip" onclick="dismissEyeTip()">
+    <span class="eye-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    </span>
+    <span>看向远处 20 秒，让眼睛休息一下</span>
+</div>
+
+<!-- 脊椎状态指示器（仅桌面端） -->
+<div class="spine-widget" id="spineWidget">
+    <div class="spine-bubble" id="spineBubble">状态良好</div>
+    <svg class="spine-svg" id="spineSvg" viewBox="0 0 40 80" width="40" height="80">
+        <!-- 颈椎 (3节) -->
+        <rect class="spine-vert" x="16" y="4" width="8" height="7" rx="3"/>
+        <rect class="spine-vert" x="16" y="13" width="8" height="7" rx="3"/>
+        <rect class="spine-vert" x="16" y="22" width="8" height="7" rx="3"/>
+        <!-- 胸椎 (4节) -->
+        <rect class="spine-vert" x="15" y="32" width="10" height="7" rx="3"/>
+        <rect class="spine-vert" x="15" y="41" width="10" height="7" rx="3"/>
+        <rect class="spine-vert" x="15" y="50" width="10" height="7" rx="3"/>
+        <rect class="spine-vert" x="15" y="59" width="10" height="7" rx="3"/>
+        <!-- 腰椎 (2节) -->
+        <rect class="spine-vert" x="14" y="69" width="12" height="7" rx="3"/>
+        <!-- 骶骨 -->
+        <ellipse class="spine-vert" cx="20" cy="79" rx="7" ry="3"/>
+    </svg>
+</div>
+
+<!-- 提醒弹窗（休息模式） -->
+<div class="reminder-overlay" id="reminderOverlay">
+    <div class="reminder-modal">
+        <div class="reminder-icon-wrap" id="reminderIconWrap">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <div class="reminder-title" id="reminderTitle">该起来活动一下了</div>
+        <div class="reminder-subtitle" id="reminderSubtitle">哪怕只有两分钟也好，你的身体会感谢你的</div>
+
+        <!-- 休息计时 -->
+        <div class="break-countdown-wrap">
+            <div class="break-countdown-digits" id="breakCountdown">00:00</div>
+            <div class="break-countdown-label">休息时长</div>
+        </div>
+
+        <!-- 活动按钮网格 -->
+        <a class="exercise-link" href="exercises.html" target="_blank">
+            查看运动说明
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        <div class="activity-grid" id="activityGrid"></div>
+
+        <!-- 底部操作栏 -->
+        <div class="break-actions">
+            <button class="btn btn-primary" onclick="completeBreak()">休息结束，继续工作</button>
+            <div class="break-secondary-actions">
+                <button class="btn btn-accent btn-sm" onclick="startBreathing()">478呼吸法</button>
+                <button class="btn btn-ghost btn-sm" onclick="snooze5min()">稍后提醒</button>
+            </div>
+            <div class="skip-link" onclick="showSkipReasons()">这次真的没法起</div>
+        </div>
+
+        <!-- 跳过原因弹窗 -->
+        <div class="skip-overlay" id="skipOverlay" onclick="closeSkipReasons()">
+            <div class="skip-modal" onclick="event.stopPropagation()">
+                <div class="skip-title">选择跳过原因</div>
+                <div class="skip-options">
+                    <button class="skip-option" onclick="confirmSkip('正在开会中')">🎤 正在开会中</button>
+                    <button class="skip-option" onclick="confirmSkip('赶死线/心流中')">🔥 赶死线 / 心流中</button>
+                    <button class="skip-option" onclick="confirmSkip('身体不适')">🤒 身体不适</button>
+                    <button class="skip-option" onclick="confirmSkip('其他')">📝 其他</button>
+                </div>
+                <div class="skip-cancel" onclick="closeSkipReasons()">取消</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 478 呼吸法 -->
+<div class="breath-overlay" id="breathOverlay">
+    <button class="breath-close" onclick="closeBreathing()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="breath-circle-wrap">
+        <div class="breath-circle" id="breathCircle">
+            <div class="breath-text" id="breathText">准备开始</div>
+        </div>
+    </div>
+    <div class="breath-timer-text" id="breathTimer">0</div>
+    <div class="breath-phase" id="breathPhase">点击开始</div>
+    <div class="breath-round" id="breathRound">共 3 轮</div>
+</div>
+
+<!-- 庆祝动画 -->
+<div class="celebration-overlay" id="celebOverlay"></div>
+
+<!-- 分享卡片弹窗 -->
+<div class="share-overlay" id="shareOverlay" onclick="closeShareCard()">
+    <div class="share-modal" onclick="event.stopPropagation()">
+        <div class="share-close" onclick="closeShareCard()">×</div>
+        <div class="share-title">今日打卡卡片</div>
+        <canvas id="shareCanvas" width="360" height="480"></canvas>
+        <div class="share-tip">长按图片保存</div>
+    </div>
+</div>
+
+<!-- 设置抽屉 -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()">
+    <div class="settings-drawer" id="settingsDrawer" onclick="event.stopPropagation()">
+    <div class="settings-handle"></div>
+    <div class="settings-title">设置</div>
+
+    <div class="setting-group">
+        <div class="setting-group-title">提醒</div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <h4>提示音</h4>
+                <p>到时间时播放轻柔提示音</p>
+            </div>
+            <div class="setting-control">
+                <label class="toggle">
+                    <input type="checkbox" id="setSound" onchange="saveSettings()">
+                    <span class="toggle-track"></span>
+                </label>
+            </div>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <h4>桌面通知</h4>
+                <p>离开页面也能收到提醒</p>
+            </div>
+            <div class="setting-control">
+                <label class="toggle">
+                    <input type="checkbox" id="setNotif" onchange="saveSettings()">
+                    <span class="toggle-track"></span>
+                </label>
+            </div>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <h4>护眼提示 (20-20-20)</h4>
+                <p>每 20 分钟轻量提醒看远处</p>
+            </div>
+            <div class="setting-control">
+                <label class="toggle">
+                    <input type="checkbox" id="setEyeCare" onchange="saveSettings()">
+                    <span class="toggle-track"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="setting-group">
+        <div class="setting-group-title">偏好</div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <h4>暗色模式</h4>
+                <p>跟随系统或手动切换</p>
+            </div>
+            <div class="setting-control">
+                <label class="toggle">
+                    <input type="checkbox" id="setDark" onchange="saveSettings(); applyTheme()">
+                    <span class="toggle-track"></span>
+                </label>
+            </div>
+        </div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <h4>页面加载自动开始</h4>
+                <p>打开页面后自动开始计时</p>
+            </div>
+            <div class="setting-control">
+                <label class="toggle">
+                    <input type="checkbox" id="setAutoStart" onchange="saveSettings()">
+                    <span class="toggle-track"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="setting-group">
+        <div class="setting-group-title">数据</div>
+        <div class="setting-row">
+            <div class="setting-info">
+                <h4>重置今日统计</h4>
+                <p>清除今日提醒和休息记录</p>
+            </div>
+            <div class="setting-control">
+                <button class="btn btn-ghost btn-sm" onclick="resetTodayStats()" style="font-size:12px;">重置</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+// ==================== 数据 ====================
+
+// 微运动库（15条）
+const exercises = [
+    { name: '靠墙天使', desc: '背靠墙壁，双臂贴墙缓缓上下滑动，重复5次，感受肩胛骨的收拢与展开。' },
+    { name: '坐姿脊椎扭转', desc: '右手扶左膝外侧，身体向左后方扭转，保持5个呼吸，然后换另一侧。' },
+    { name: '站立猫牛式', desc: '双手扶桌，双脚后退一步。吸气抬头塌腰，呼气低头拱背，重复8次。' },
+    { name: '颈部环绕', desc: '缓慢顺时针转动头部一整圈，再逆时针一整圈，各重复3次，动作要慢。' },
+    { name: '肩部环绕', desc: '双肩同时向前画圆10次，再向后画圆10次，感受肩颈的放松。' },
+    { name: '手腕旋转', desc: '双手十指交叉，顺时针旋转手腕10圈，再逆时针10圈，缓解打字疲劳。' },
+    { name: '坐姿抬腿', desc: '坐在椅子上，双腿交替伸直抬起，每侧保持3秒，重复10次。' },
+    { name: '踮脚站立', desc: '站起身，双脚并拢，缓慢踮起脚尖保持3秒再放下，重复15次。' },
+    { name: '手臂交叉伸展', desc: '右臂伸直跨过胸前，左手肘内侧轻压，保持15秒后换另一侧。' },
+    { name: '坐姿前屈', desc: '双脚平放，身体缓慢向前弯曲，双手尽量触碰脚尖，保持15秒。' },
+    { name: '站立侧弯', desc: '双手举过头顶，身体缓慢向右侧弯曲，保持5秒后换另一侧，各5次。' },
+    { name: '椅子俯卧撑', desc: '双手撑在椅子边缘，身体保持笔直，做10个俯卧撑，锻炼上肢力量。' },
+    { name: '脚踝旋转', desc: '抬起一只脚，顺时针旋转脚踝10圈，再逆时针10圈，然后换另一只脚。' },
+    { name: '深蹲', desc: '双脚与肩同宽，缓慢下蹲至大腿与地面平行，重复10次。' },
+    { name: '扩胸运动', desc: '双手屈肘在胸前合拢，然后用力向两侧打开，重复15次，改善含胸驼背。' },
+];
+
+// 情境化提醒文案（按时间段）
+const timeBasedMessages = {
+    morning: [
+        '新的一天开始了，保持好姿势，精力满满地出发吧！',
+        '上午是效率最高的时段，但也别忘了偶尔动一动。',
+        '你的脊椎发来一条消息：请求保持端正坐姿',
+    ],
+    midday: [
+        '午饭后别急着坐下，站立或散步5分钟帮助消化。',
+        '午后容易犯困，起来走动走动比咖啡更提神。',
+        '你的身体说：我已经努力工作一上午了，求放过',
+    ],
+    afternoon: [
+        '下午三点，身体能量开始走低，起来拉伸一下重新充电。',
+        '久坐让血液循环变慢，站起来让血液重新流动起来。',
+        '你的肩膀发来贺电：恭喜你又坚持了一小时，但该动动了',
+    ],
+    evening: [
+        '傍晚时分，一天的久坐积累了不少疲劳，好好放松一下吧。',
+        '下班前最后一段时间了，坚持住，但也要照顾好自己的身体。',
+        '你的腰椎发来温馨提示：今晚回去记得做做拉伸',
+    ],
+};
+
+// 幽默提醒文案库
+const humorMessages = [
+    '您的腰椎间盘发来求救：再不站，我就要突出了',
+    '报告！臀部已连续工作超时，申请罢工',
+    '隔壁同事已经起身了，注意保持队形',
+    '科学研究表明：久坐加速椅子磨损，请为椅子减负',
+    '您的脊椎已欠费，请起身充值',
+    '久坐警告：您的椅子正在产生依赖性',
+    '身体发来通知：检测到久坐行为，建议立即重启',
+    '您的臀部表示：它需要呼吸新鲜空气',
+    '恭喜！您已解锁"久坐达人"成就，请起身领奖',
+    '您的颈椎正在考虑离职，请挽留一下',
+];
+
+// 喝水提醒文案
+const waterMessages = [
+    '顺便去接杯水吧，一举两得',
+    '喝杯水再回来，保持水分充足',
+    '你的身体需要补充水分了，接杯水吧',
+    '起身接水是个好习惯，别忘了',
+    '温水一杯，健康相随',
+];
+
+// 庆祝文案
+const celebrationMessages = [
+    { text: '太棒了！', sub: '你完成了今天的第一次休息' },
+    { text: '继续保持！', sub: '每次起身都是对自己的关爱' },
+    { text: '真厉害！', sub: '你的身体正在感谢你' },
+    { text: '好样的！', sub: '健康的习惯正在养成' },
+    { text: '做得好！', sub: '坚持就是胜利' },
+];
+
+// 成就定义
+const achievements = {
+    3: { emoji: '🎖️', title: '初露锋芒', desc: '连续 3 天关爱身体' },
+    7: { emoji: '🏆', title: '脊柱守护者', desc: '你已经保护脊椎一整周' },
+    21: { emoji: '👑', title: '久坐克星', desc: '一个习惯已经养成' },
+};
+
+// ==================== 状态 ====================
+const S = {
+    interval: 45,           // 工作间隔（秒）
+    targetTime: 0,          // 目标时间戳（ms）
+    isRunning: false,
+    isPaused: false,
+    tickId: null,
+    soundEnabled: false,    // 默认关闭
+    notifEnabled: true,
+    eyeCareEnabled: false,
+    darkMode: null,         // null=跟随系统
+    autoStart: false,
+    eyeTipShown: false,
+    eyeTipTimer: null,
+    audioCtx: null,
+    stats: { reminders: 0, completed: 0, streak: 0, lastDate: '', todayDate: '', totalActivities: 0, breakLog: [], unlockedAchievements: [], weeklyData: {}, skipped: 0 },
+    // 休息倒计时相关
+    breakStartTime: 0,      // 休息开始时间戳（ms）
+    breakTickId: null,
+    completedActivities: [],   // 当前休息中已完成的活动名称列表
+};
+
+// ==================== 初始化 ====================
+function init() {
+    loadSettings();
+    loadStats();
+    applyTheme();
+    updateStatsUI();
+    updateBreakLogUI();
+    updateSkipStatUI();
+    checkNotifBanner();
+
+    // 启动主循环（基于时间戳，每秒更新）
+    S.tickId = setInterval(mainTick, 200);
+
+    if (S.autoStart) {
+        startTimer();
+    } else {
+        S.interval = 45 * 60;
+        updateTimerUI(S.interval);
+        document.getElementById('timerStatus').textContent = '点击开始';
+        updateControlBtns();
+    }
+
+    // 护眼提示计时
+    if (S.eyeCareEnabled) startEyeCareTimer();
+}
+
+// ==================== 计时器核心（基于时间戳） ====================
+function handleStart() {
+    if (S.isRunning) return;
+    if (S.isPaused) {
+        // 从暂停恢复
+        S.targetTime = Date.now() + S.interval * 1000;
+        S.isRunning = true;
+        S.isPaused = false;
+        updateControlBtns();
+        document.getElementById('timerStatus').textContent = '计时中';
+        return;
+    }
+    startTimer();
+}
+
+function startTimer() {
+    S.interval = getIntervalSeconds();
+    S.targetTime = Date.now() + S.interval * 1000;
+    S.isRunning = true;
+    S.isPaused = false;
+    updateControlBtns();
+    document.getElementById('timerStatus').textContent = '计时中';
+}
+
+function togglePause() {
+    if (S.isRunning) {
+        // 暂停：保存剩余时间
+        const remaining = Math.max(0, S.targetTime - Date.now());
+        S.interval = Math.ceil(remaining / 1000);
+        S.isRunning = false;
+        S.isPaused = true;
+        updateControlBtns();
+        document.getElementById('timerStatus').textContent = '已暂停';
+        showToast('已暂停');
+    }
+}
+
+function resetTimer() {
+    S.isRunning = false;
+    S.isPaused = false;
+    S.interval = getIntervalSeconds();
+    S.targetTime = 0;
+    updateTimerUI(S.interval);
+    updateControlBtns();
+    document.getElementById('timerStatus').textContent = '已重置';
+}
+
+function mainTick() {
+    if (!S.isRunning) return;
+    const remaining = Math.max(0, S.targetTime - Date.now());
+    const seconds = Math.ceil(remaining / 1000);
+    updateTimerUI(seconds);
+    updateSpineStatus();
+
+    if (remaining <= 0) {
+        S.isRunning = false;
+        S.isPaused = false;
+        updateControlBtns();
+        triggerReminder();
+    }
+}
+
+function updateTimerUI(totalSeconds) {
+    const m = Math.floor(totalSeconds / 60);
+    const s = totalSeconds % 60;
+    document.getElementById('timerDigits').textContent =
+        `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+    // 环形进度和呼吸光效
+    const total = getIntervalSeconds();
+    const progress = totalSeconds / total;
+    const circumference = 2 * Math.PI * 90;
+    const offset = circumference * (1 - progress);
+    const ring = document.getElementById('ringProgress');
+    const breath = document.getElementById('timerBreath');
+    ring.style.strokeDashoffset = offset;
+    ring.classList.remove('warning', 'danger');
+    breath.classList.remove('warning', 'danger');
+    if (progress <= 0.1) {
+        ring.classList.add('danger');
+        breath.classList.add('danger');
+    } else if (progress <= 0.25) {
+        ring.classList.add('warning');
+        breath.classList.add('warning');
+    }
+
+    // 页面标题
+    if (S.isRunning) {
+        document.title = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} · 起身动动`;
+    }
+}
+
+function updateControlBtns() {
+    const startBtn = document.getElementById('btnStart');
+    const pauseBtn = document.getElementById('btnPause');
+    const resetBtn = document.getElementById('btnReset');
+    if (S.isRunning) {
+        // 计时中：禁用开始，启用暂停
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        pauseBtn.innerHTML = '暂停';
+        resetBtn.disabled = false;
+    } else if (S.isPaused) {
+        // 已暂停：启用开始（恢复），禁用暂停
+        startBtn.disabled = false;
+        startBtn.innerHTML = '继续';
+        pauseBtn.disabled = true;
+        resetBtn.disabled = false;
+    } else {
+        // 初始/重置状态：启用开始，禁用暂停
+        startBtn.disabled = false;
+        startBtn.innerHTML = '开始';
+        pauseBtn.disabled = true;
+        resetBtn.disabled = true;
+    }
+}
+
+function getIntervalSeconds() {
+    const active = document.querySelector('.interval-chip.active');
+    if (active) return parseInt(active.dataset.val) * 60;
+    const custom = parseInt(document.getElementById('customInterval').value);
+    if (custom >= 5 && custom <= 7200) return custom;
+    return 45 * 60;
+}
+
+function setInterval_(mins) {
+    document.querySelectorAll('.interval-chip').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.interval-chip[data-val="${mins}"]`).classList.add('active');
+    document.getElementById('customInterval').value = '';
+    S.interval = mins * 60;
+    if (S.isRunning || S.isPaused) {
+        S.isRunning = false;
+        S.isPaused = false;
+        startTimer();
+    } else {
+        updateTimerUI(S.interval);
+    }
+}
+
+function setCustomInterval() {
+    const val = parseInt(document.getElementById('customInterval').value);
+    if (val >= 5 && val <= 7200) {
+        document.querySelectorAll('.interval-chip').forEach(c => c.classList.remove('active'));
+        S.interval = val;
+        if (S.isRunning || S.isPaused) {
+            S.isRunning = false;
+            S.isPaused = false;
+            startTimer();
+        } else {
+            updateTimerUI(S.interval);
+        }
+    }
+}
+
+// ==================== 提醒触发 ====================
+function triggerReminder() {
+    S.stats.reminders++;
+    saveStats();
+    updateStatsUI();
+
+    // 视觉：卡片高亮
+    document.getElementById('timerCard').classList.add('highlight');
+    setTimeout(() => document.getElementById('timerCard').classList.remove('highlight'), 2500);
+
+    // 视觉：标签闪烁
+    let flashCount = 0;
+    const flashInterval = setInterval(() => {
+        document.title = flashCount % 2 === 0 ? '[!] 该起身了！' : '起身动动 · 久坐提醒';
+        flashCount++;
+        if (flashCount >= 8) {
+            clearInterval(flashInterval);
+            document.title = '起身动动 · 久坐提醒助手';
+        }
+    }, 500);
+
+    // 声音（始终播放提醒音）
+    playSound();
+
+    // 弹窗
+    showReminderModal();
+
+    // 浏览器通知
+    if (S.notifEnabled && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        const ex = getRandomExercise();
+        new Notification('起身动动 - 该起身活动啦！', {
+            body: `${ex.name}：${ex.desc.slice(0, 40)}…`,
+            tag: 'sit-reminder',
+            requireInteraction: true,
+        });
+    }
+
+    // 浏览器原生弹窗兜底（仅在页面不可见时触发，避免阻塞用户交互）
+    setTimeout(() => {
+        if (document.hidden && document.getElementById('reminderOverlay').classList.contains('open')) {
+            confirm('该起来活动一下了！\n\n久坐时间已到，请起身活动身体。');
+        }
+    }, 1500);
+}
+
+function showReminderModal() {
+    // 随机选择幽默标题
+    const title = humorMessages[Math.floor(Math.random() * humorMessages.length)];
+
+    // 根据时间段选择副标题
+    const hour = new Date().getHours();
+    let period;
+    if (hour < 11) period = 'morning';
+    else if (hour < 14) period = 'midday';
+    else if (hour < 18) period = 'afternoon';
+    else period = 'evening';
+
+    const msgs = timeBasedMessages[period];
+    const subtitle = msgs[Math.floor(Math.random() * msgs.length)];
+
+    document.getElementById('reminderTitle').textContent = title;
+    document.getElementById('reminderSubtitle').textContent = subtitle;
+
+    // 构建活动列表
+    const grid = document.getElementById('activityGrid');
+    grid.innerHTML = '';
+    S.completedActivities = [];
+    exercises.forEach((ex, i) => {
+        const item = document.createElement('div');
+        item.className = 'activity-item';
+        item.dataset.index = i;
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'activity-item-name';
+        nameSpan.textContent = ex.name;
+
+        const checkSpan = document.createElement('span');
+        checkSpan.className = 'activity-item-check';
+
+        item.appendChild(nameSpan);
+        item.appendChild(checkSpan);
+
+        item.addEventListener('click', function() {
+            this.classList.toggle('done');
+            const name = exercises[this.dataset.index].name;
+            if (this.classList.contains('done')) {
+                S.completedActivities.push(name);
+            } else {
+                S.completedActivities = S.completedActivities.filter(a => a !== name);
+            }
+        });
+
+        grid.appendChild(item);
+    });
+
+    // 启动休息顺时计时
+    S.breakStartTime = Date.now();
+    if (S.breakTickId) clearInterval(S.breakTickId);
+    S.breakTickId = setInterval(breakTick, 200);
+    updateBreakCountdownUI(0);
+
+    document.getElementById('reminderOverlay').classList.add('open');
+}
+
+// 休息顺时计时 tick
+function breakTick() {
+    const elapsed = Math.floor((Date.now() - S.breakStartTime) / 1000);
+    updateBreakCountdownUI(elapsed);
+}
+
+// 更新休息计时 UI（顺时，从0开始）
+function updateBreakCountdownUI(elapsedSeconds) {
+    const m = Math.floor(elapsedSeconds / 60);
+    const s = elapsedSeconds % 60;
+    document.getElementById('breakCountdown').textContent =
+        `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function getRandomExercise() {
+    return exercises[Math.floor(Math.random() * exercises.length)];
+}
+
+// ==================== 用户操作 ====================
+function completeBreak() {
+    // 停止休息倒计时
+    if (S.breakTickId) {
+        clearInterval(S.breakTickId);
+        S.breakTickId = null;
+    }
+
+    document.getElementById('reminderOverlay').classList.remove('open');
+
+    // 记录统计数据
+    S.stats.completed++;
+    S.stats.totalActivities += S.completedActivities.length;
+    recordWeeklyData();
+
+    // 记录休息日志
+    if (S.completedActivities.length > 0) {
+        const now = new Date();
+        const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        S.stats.breakLog.push({
+            time: timeStr,
+            activities: [...S.completedActivities]
+        });
+        // 最多保留最近5条
+        if (S.stats.breakLog.length > 5) {
+            S.stats.breakLog = S.stats.breakLog.slice(-5);
+        }
+    }
+
+    saveStats();
+    updateStatsUI();
+    updateBreakLogUI();
+
+    // 首次休息庆祝
+    if (S.stats.completed === 1) {
+        showCelebration();
+    } else {
+        showToast('休息完成，继续加油！');
+    }
+
+    // 检查成就
+    checkAchievement();
+
+    // 脊椎恢复绿色
+    resetSpineStatus();
+
+    // 重新开始计时
+    startTimer();
+}
+
+function snooze5min() {
+    // 停止休息倒计时
+    if (S.breakTickId) {
+        clearInterval(S.breakTickId);
+        S.breakTickId = null;
+    }
+
+    document.getElementById('reminderOverlay').classList.remove('open');
+    showToast('5 分钟后再次提醒');
+    S.interval = 5 * 60;
+    S.targetTime = Date.now() + S.interval * 1000;
+    S.isRunning = true;
+    S.isPaused = false;
+    updateControlBtns();
+    document.getElementById('timerStatus').textContent = '稍后提醒中';
+}
+
+// ==================== 脊椎状态指示器 ====================
+let spineLastBreakTime = Date.now(); // 上次休息时间戳
+
+function updateSpineStatus() {
+    const elapsed = (Date.now() - spineLastBreakTime) / 1000 / 60; // 分钟
+    const verts = document.querySelectorAll('.spine-vert');
+    const bubble = document.getElementById('spineBubble');
+
+    if (elapsed >= 180) {
+        // 超过 3 小时 → 红色
+        verts.forEach(v => { v.classList.add('danger'); v.classList.remove('warning'); });
+        bubble.textContent = '需要立刻休息';
+        bubble.className = 'spine-bubble show danger';
+    } else if (elapsed >= 120) {
+        // 超过 2 小时 → 黄色
+        verts.forEach(v => { v.classList.add('warning'); v.classList.remove('danger'); });
+        bubble.textContent = '腰椎压力大';
+        bubble.className = 'spine-bubble show warning';
+    } else {
+        // 正常 → 绿色，隐藏气泡
+        verts.forEach(v => { v.classList.remove('warning', 'danger'); });
+        bubble.className = 'spine-bubble';
+    }
+}
+
+function resetSpineStatus() {
+    spineLastBreakTime = Date.now();
+    const verts = document.querySelectorAll('.spine-vert');
+    const bubble = document.getElementById('spineBubble');
+    verts.forEach(v => { v.classList.remove('warning', 'danger'); });
+    bubble.textContent = '状态良好';
+    bubble.className = 'spine-bubble show';
+    // 3 秒后隐藏气泡
+    setTimeout(() => {
+        if (!verts[0].classList.contains('warning') && !verts[0].classList.contains('danger')) {
+            bubble.className = 'spine-bubble';
+        }
+    }, 3000);
+}
+
+// ==================== 跳过休息 ====================
+function showSkipReasons() {
+    document.getElementById('skipOverlay').classList.add('show');
+}
+
+function closeSkipReasons() {
+    document.getElementById('skipOverlay').classList.remove('show');
+}
+
+function confirmSkip(reason) {
+    closeSkipReasons();
+
+    // 停止休息倒计时
+    if (S.breakTickId) {
+        clearInterval(S.breakTickId);
+        S.breakTickId = null;
+    }
+
+    // 关闭休息弹窗
+    document.getElementById('reminderOverlay').classList.remove('open');
+
+    // 记录跳过（计入提醒次数，不计入已休息次数）
+    S.stats.skipped = (S.stats.skipped || 0) + 1;
+    saveStats();
+    updateSkipStatUI();
+
+    // Toast 提示
+    showToast('没关系，下一个周期再起来吧 🙆');
+
+    // 重新开始计时
+    startTimer();
+}
+
+function updateSkipStatUI() {
+    const count = S.stats.skipped || 0;
+    const el = document.getElementById('skipStat');
+    if (count > 0) {
+        el.style.display = 'flex';
+        document.getElementById('skipCount').textContent = count;
+    } else {
+        el.style.display = 'none';
+    }
+}
+
+// ==================== 478 呼吸法 ====================
+let breathInterval = null;
+let breathTimeout = null;
+
+function startBreathing() {
+    document.getElementById('reminderOverlay').classList.remove('open');
+    document.getElementById('breathOverlay').classList.add('open');
+
+    // 初始化音频上下文（需要用户手势）
+    if (!S.audioCtx) {
+        try { S.audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+    }
+
+    const circle = document.getElementById('breathCircle');
+    const text = document.getElementById('breathText');
+    const timer = document.getElementById('breathTimer');
+    const phase = document.getElementById('breathPhase');
+    const round = document.getElementById('breathRound');
+
+    let currentRound = 0;
+    const totalRounds = 3;
+
+    function doOneRound() {
+        currentRound++;
+        if (currentRound > totalRounds) {
+            closeBreathing();
+            showToast('呼吸练习完成，感觉好些了吗？');
+            return;
+        }
+        round.textContent = `第 ${currentRound} / ${totalRounds} 轮`;
+
+        // 吸气 4 秒
+        circle.className = 'breath-circle inhale';
+        text.textContent = '吸气';
+        phase.textContent = '缓慢深吸气';
+        let count = 4;
+        timer.textContent = count;
+        breathInterval = setInterval(() => {
+            count--;
+            timer.textContent = count;
+            if (count <= 0) {
+                clearInterval(breathInterval);
+                // 屏息 7 秒
+                circle.className = 'breath-circle hold';
+                text.textContent = '屏息';
+                phase.textContent = '轻轻屏住呼吸';
+                count = 7;
+                timer.textContent = count;
+                breathInterval = setInterval(() => {
+                    count--;
+                    timer.textContent = count;
+                    if (count <= 0) {
+                        clearInterval(breathInterval);
+                        // 呼气 8 秒
+                        circle.className = 'breath-circle exhale';
+                        text.textContent = '呼气';
+                        phase.textContent = '缓慢呼出';
+                        count = 8;
+                        timer.textContent = count;
+                        breathInterval = setInterval(() => {
+                            count--;
+                            timer.textContent = count;
+                            if (count <= 0) {
+                                clearInterval(breathInterval);
+                                circle.className = 'breath-circle';
+                                text.textContent = '放松';
+                                phase.textContent = '自然呼吸片刻';
+                                timer.textContent = '·';
+                                breathTimeout = setTimeout(doOneRound, 2000);
+                            }
+                        }, 1000);
+                    }
+                }, 1000);
+            }
+        }, 1000);
+    }
+
+    // 延迟 1 秒开始
+    setTimeout(doOneRound, 1000);
+}
+
+function closeBreathing() {
+    clearInterval(breathInterval);
+    clearTimeout(breathTimeout);
+    document.getElementById('breathOverlay').classList.remove('open');
+    document.getElementById('breathCircle').className = 'breath-circle';
+
+    // 恢复提醒弹窗和休息计时
+    document.getElementById('reminderOverlay').classList.add('open');
+    if (!S.breakTickId) {
+        S.breakStartTime = Date.now();
+        S.breakTickId = setInterval(breakTick, 200);
+    }
+}
+
+// ==================== 声音 ====================
+function playSound() {
+    try {
+        if (!S.audioCtx) S.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = S.audioCtx;
+        if (ctx.state === 'suspended') ctx.resume();
+
+        // 悦耳的六音提示（两遍 C-E-G，每音1秒，间隔0.35秒）
+        const notes = [523.25, 659.25, 783.99, 523.25, 659.25, 783.99]; // C5 E5 G5 x2
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.value = freq;
+            osc.type = 'sine';
+            const start = ctx.currentTime + i * 0.35;
+            gain.gain.setValueAtTime(0, start);
+            gain.gain.linearRampToValueAtTime(0.25, start + 0.05);
+            gain.gain.exponentialRampToValueAtTime(0.001, start + 1.0);
+            osc.start(start);
+            osc.stop(start + 1.0);
+        });
+    } catch(e) { console.log('音频播放失败', e); }
+}
+
+// ==================== 久坐研究报告折叠 ====================
+function toggleResearch() {
+    document.getElementById('researchCard').classList.toggle('open');
+}
+
+// ==================== 通知权限 ====================
+function checkNotifBanner() {
+    try {
+        if (!('Notification' in window) || Notification.permission === 'granted' || Notification.permission === 'denied') {
+            document.getElementById('notifBanner').classList.add('hidden');
+        }
+    } catch(e) {
+        document.getElementById('notifBanner').classList.add('hidden');
+    }
+}
+
+function requestNotifPermission() {
+    if ('Notification' in window) {
+        Notification.requestPermission().then(perm => {
+            if (perm === 'granted') {
+                S.notifEnabled = true;
+                document.getElementById('setNotif').checked = true;
+                saveSettings();
+                showToast('桌面通知已开启');
+            } else if (perm === 'denied') {
+                showToast('别担心，即使不开通知，页面内提醒也能正常工作');
+            }
+            document.getElementById('notifBanner').classList.add('hidden');
+        });
+    }
+}
+
+// ==================== 护眼提示 ====================
+function startEyeCareTimer() {
+    if (S.eyeTipTimer) clearInterval(S.eyeTipTimer);
+    S.eyeTipTimer = setInterval(() => {
+        if (S.isRunning && !S.isPaused) {
+            showEyeTip();
+        }
+    }, 20 * 60 * 1000); // 20 分钟
+}
+
+function showEyeTip() {
+    const tip = document.getElementById('eyeTip');
+    tip.classList.add('show');
+    setTimeout(() => tip.classList.remove('show'), 8000);
+}
+
+function dismissEyeTip() {
+    document.getElementById('eyeTip').classList.remove('show');
+}
+
+// ==================== 庆祝动画 ====================
+function showCelebration() {
+    const msg = celebrationMessages[0];
+    const overlay = document.getElementById('celebOverlay');
+    overlay.classList.add('show');
+    overlay.innerHTML = '';
+
+    // 彩纸
+    const colors = ['#2ecc71', '#f39c12', '#e74c3c', '#3498db', '#9b59b6', '#1abc9c'];
+    for (let i = 0; i < 40; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-10px';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 0.8 + 's';
+        confetti.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+        confetti.style.width = (6 + Math.random() * 8) + 'px';
+        confetti.style.height = (6 + Math.random() * 8) + 'px';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        overlay.appendChild(confetti);
+    }
+
+    // 庆祝卡片
+    const toast = document.createElement('div');
+    toast.className = 'celebration-toast';
+    toast.innerHTML = `
+        <div class="celeb-icon">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="celeb-text">${msg.text}</div>
+        <div class="celeb-sub">${msg.sub}</div>
+    `;
+    overlay.appendChild(toast);
+
+    setTimeout(() => {
+        overlay.classList.remove('show');
+        overlay.innerHTML = '';
+    }, 3000);
+}
+
+// ==================== 成就弹窗 ====================
+function showAchievement(streak) {
+    const ach = achievements[streak];
+    if (!ach) return;
+    if (S.stats.unlockedAchievements && S.stats.unlockedAchievements.includes(streak)) return;
+
+    // 记录已解锁
+    if (!S.stats.unlockedAchievements) S.stats.unlockedAchievements = [];
+    S.stats.unlockedAchievements.push(streak);
+    saveStats();
+
+    const overlay = document.getElementById('celebOverlay');
+    overlay.classList.add('show');
+    overlay.innerHTML = '';
+
+    // 彩纸
+    const colors = ['#7d9e8c', '#d4a574', '#c98989', '#a8c4b5', '#f5f7f2'];
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.top = '-10px';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+        confetti.style.animationDuration = (2 + Math.random() * 1.5) + 's';
+        confetti.style.width = (8 + Math.random() * 8) + 'px';
+        confetti.style.height = (8 + Math.random() * 8) + 'px';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+        overlay.appendChild(confetti);
+    }
+
+    // 成就卡片
+    const toast = document.createElement('div');
+    toast.className = 'celebration-toast';
+    toast.innerHTML = `
+        <div class="celeb-emoji">${ach.emoji}</div>
+        <div class="celeb-text">${ach.title}</div>
+        <div class="celeb-sub">${ach.desc}</div>
+    `;
+    overlay.appendChild(toast);
+
+    setTimeout(() => {
+        overlay.classList.remove('show');
+        overlay.innerHTML = '';
+    }, 3500);
+}
+
+// 检查成就
+function checkAchievement() {
+    const streak = S.stats.streak;
+    if (achievements[streak]) {
+        setTimeout(() => showAchievement(streak), 500);
+    }
+}
+
+// ==================== 统计 ====================
+function updateStatsUI() {
+    document.getElementById('statReminders').textContent = S.stats.reminders;
+    document.getElementById('statCompleted').textContent = S.stats.completed;
+    document.getElementById('statActivities').textContent = S.stats.totalActivities || 0;
+    document.getElementById('statStreak').textContent = S.stats.streak;
+    updateWeekChart();
+}
+
+// 更新本周趋势图
+function updateWeekChart() {
+    const container = document.getElementById('weekChartBars');
+    const days = ['日', '一', '二', '三', '四', '五', '六'];
+    const today = new Date();
+    const todayDay = today.getDay();
+
+    // 获取本周数据
+    const weeklyData = S.stats.weeklyData || {};
+
+    // 计算最大值用于缩放
+    let maxVal = 1;
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - todayDay + i);
+        const key = date.toDateString();
+        const val = weeklyData[key] || 0;
+        if (val > maxVal) maxVal = val;
+    }
+
+    container.innerHTML = '';
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(today);
+        date.setDate(today.getDate() - todayDay + i);
+        const key = date.toDateString();
+        const val = weeklyData[key] || 0;
+        const height = Math.max(4, (val / maxVal) * 60);
+        const isToday = i === todayDay;
+
+        const wrap = document.createElement('div');
+        wrap.className = 'week-bar-wrap';
+        wrap.innerHTML = `
+            <div class="week-bar-num">${val}</div>
+            <div class="week-bar${isToday ? ' today' : ''}" style="height: ${height}px"></div>
+            <div class="week-bar-label">${days[i]}</div>
+        `;
+        container.appendChild(wrap);
+    }
+}
+
+// 记录今日完成数到周数据
+function recordWeeklyData() {
+    const today = new Date().toDateString();
+    if (!S.stats.weeklyData) S.stats.weeklyData = {};
+    S.stats.weeklyData[today] = (S.stats.weeklyData[today] || 0) + 1;
+    // 只保留最近7天
+    const keys = Object.keys(S.stats.weeklyData);
+    if (keys.length > 7) {
+        const oldData = { ...S.stats.weeklyData };
+        const sorted = keys.sort((a, b) => new Date(b) - new Date(a));
+        S.stats.weeklyData = {};
+        sorted.slice(0, 7).forEach(k => S.stats.weeklyData[k] = oldData[k]);
+    }
+}
+
+// ==================== 分享卡片 ====================
+const healthQuotes = [
+    '每坐45分钟，起身活动2分钟，远离亚健康',
+    '久坐是新型吸烟，起身是最好的解药',
+    '短暂休息，长久健康',
+    '你的身体会感谢每一次起身',
+    '健康不是目标，是一种生活方式',
+];
+
+function generateShareCard() {
+    const canvas = document.getElementById('shareCanvas');
+    const ctx = canvas.getContext('2d');
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // 背景渐变
+    const grad = ctx.createLinearGradient(0, 0, w, h);
+    grad.addColorStop(0, '#f8f5f0');
+    grad.addColorStop(1, '#f0ebe4');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+
+    // 顶部装饰
+    ctx.fillStyle = '#7d9e8c';
+    ctx.fillRect(0, 0, w, 8);
+
+    // Logo区域
+    ctx.fillStyle = '#7d9e8c';
+    ctx.font = 'bold 24px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('SIT 起身动动', w/2, 60);
+
+    // 日期
+    const today = new Date();
+    const dateStr = `${today.getFullYear()}年${today.getMonth()+1}月${today.getDate()}日`;
+    ctx.fillStyle = '#6b665e';
+    ctx.font = '14px system-ui, sans-serif';
+    ctx.fillText(dateStr, w/2, 90);
+
+    // 数据区域
+    ctx.fillStyle = '#fffdf9';
+    roundRect(ctx, 30, 110, w-60, 140, 16);
+    ctx.fill();
+
+    // 数据内容
+    ctx.fillStyle = '#3d3a36';
+    ctx.font = 'bold 48px system-ui, sans-serif';
+    ctx.fillText(S.stats.completed, w/2, 170);
+    ctx.font = '14px system-ui, sans-serif';
+    ctx.fillText('今日起身次数', w/2, 195);
+
+    ctx.fillStyle = '#7d9e8c';
+    ctx.font = 'bold 28px system-ui, sans-serif';
+    ctx.fillText(`${S.stats.streak} 天`, w/2, 235);
+    ctx.font = '12px system-ui, sans-serif';
+    ctx.fillStyle = '#6b665e';
+    ctx.fillText('连续坚持', w/2, 255);
+
+    // 金句
+    const quote = healthQuotes[Math.floor(Math.random() * healthQuotes.length)];
+    ctx.fillStyle = '#6b665e';
+    ctx.font = '13px system-ui, sans-serif';
+    ctx.fillText(quote, w/2, 300);
+
+    // 分隔线
+    ctx.strokeStyle = '#e5dfd6';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(40, 330);
+    ctx.lineTo(w-40, 330);
+    ctx.stroke();
+
+    // 底部
+    ctx.fillStyle = '#9e968c';
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.fillText('用 TRAE SOLO 制作', w/2, h-30);
+
+    // 显示弹窗
+    document.getElementById('shareOverlay').classList.add('show');
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r);
+    ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+}
+
+function closeShareCard() {
+    document.getElementById('shareOverlay').classList.remove('show');
+}
+
+// ==================== 本周健康报告 ====================
+function generateWeeklyReport() {
+    const today = new Date();
+    const todayDay = today.getDay(); // 0=日
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - ((todayDay + 6) % 7));
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    const fmt = d => `${d.getMonth()+1}月${d.getDate()}日`;
+    const periodStr = `${fmt(monday)} — ${fmt(sunday)}`;
+
+    const weeklyData = S.stats.weeklyData || {};
+    const days = ['周一','周二','周三','周四','周五','周六','周日'];
+
+    // 收集本周每天数据
+    let totalBreaks = 0;
+    let rows = '';
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        const key = date.toDateString();
+        const val = weeklyData[key] || 0;
+        totalBreaks += val;
+        const isToday = date.toDateString() === today.toDateString();
+        rows += `<tr${isToday ? ' style="background:#f5f7f2;font-weight:600"' : ''}>
+            <td style="padding:10px 16px;border-bottom:1px solid #e5dfd6;font-size:14px;">${days[i]}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid #e5dfd6;font-size:14px;text-align:center;">${fmt(date)}</td>
+            <td style="padding:10px 16px;border-bottom:1px solid #e5dfd6;font-size:14px;text-align:center;color:#7d9e8c;font-weight:700;">${val} 次</td>
+        </tr>`;
+    }
+
+    // 健康小结
+    const avgPerDay = (totalBreaks / 7).toFixed(1);
+    let summary;
+    if (totalBreaks >= 35) {
+        summary = '本周表现优秀！每天平均起身 ' + avgPerDay + ' 次，远超健康建议标准，请继续保持！';
+    } else if (totalBreaks >= 21) {
+        summary = '本周表现良好，保持规律起身习惯。建议每天至少起身 3 次，让身体持续受益。';
+    } else if (totalBreaks >= 10) {
+        summary = '本周有一定进步空间。建议设置更频繁的提醒，每 30 分钟起身活动一次。';
+    } else if (totalBreaks > 0) {
+        summary = '本周起身次数较少，久坐风险较高。请尝试缩短提醒间隔，从每次 30 分钟开始。';
+    } else {
+        summary = '本周暂无休息记录。久坐是健康的隐形杀手，现在开始行动还不晚！';
+    }
+
+    const now = new Date();
+    const genDate = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>周健康报告 · 起身动动</title>
+<style>
+    @page { size: A4; margin: 20mm; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        color: #3d3a36;
+        background: #fff;
+        padding: 40px;
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    .header { text-align: center; margin-bottom: 36px; }
+    .header h1 { font-size: 22px; font-weight: 800; color: #7d9e8c; margin-bottom: 6px; }
+    .header .period { font-size: 13px; color: #9e968c; }
+    .divider { height: 2px; background: linear-gradient(90deg, #7d9e8c, #d4a574, #c98989); border-radius: 1px; margin-bottom: 28px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: #f8f5f0; border-radius: 12px; padding: 16px; text-align: center; }
+    .stat-card .num { font-size: 32px; font-weight: 800; color: #7d9e8c; }
+    .stat-card .label { font-size: 12px; color: #9e968c; margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 28px; }
+    thead th { padding: 10px 16px; border-bottom: 2px solid #7d9e8c; font-size: 13px; font-weight: 700; color: #6b665e; text-align: left; }
+    thead th:nth-child(2), thead th:nth-child(3) { text-align: center; }
+    .summary { background: #f8f5f0; border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; font-size: 14px; color: #6b665e; line-height: 1.8; border-left: 4px solid #7d9e8c; }
+    .footer { text-align: center; font-size: 11px; color: #9e968c; padding-top: 20px; border-top: 1px solid #e5dfd6; }
+    @media print { body { padding: 0; } }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>SIT 起身动动 · 周健康报告</h1>
+        <div class="period">${periodStr}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="num">${totalBreaks}</div>
+            <div class="label">本周累计起身</div>
+        </div>
+        <div class="stat-card">
+            <div class="num">${S.stats.streak}</div>
+            <div class="label">连续天数</div>
+        </div>
+        <div class="stat-card">
+            <div class="num">${S.stats.totalActivities || 0}</div>
+            <div class="label">累计完成活动</div>
+        </div>
+    </div>
+    <table>
+        <thead><tr><th>星期</th><th>日期</th><th>休息次数</th></tr></thead>
+        <tbody>${rows}</tbody>
+    </table>
+    <div class="summary">${summary}</div>
+    <div class="footer">
+        生成时间：${genDate}<br>
+        用 TRAE SOLO 制作
+    </div>
+</body>
+</html>`;
+
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+}
+
+// 更新今日活动记录列表
+function updateBreakLogUI() {
+    const container = document.getElementById('breakLogList');
+    const logs = S.stats.breakLog || [];
+    if (logs.length === 0) {
+        container.innerHTML = '<div class="break-log-empty">暂无记录</div>';
+        return;
+    }
+    // 显示最近5条，倒序
+    const recent = logs.slice(-5).reverse();
+    container.innerHTML = recent.map(log => `
+        <div class="break-log-item">
+            <div class="break-log-time">${log.time}</div>
+            <div class="break-log-activities">${log.activities.map(a => `<span>${a}</span>`).join('')}</div>
+        </div>
+    `).join('');
+}
+
+function saveStats() {
+    const today = new Date().toDateString();
+    if (S.stats.todayDate !== today) {
+        // 新的一天，检查连续天数
+        const yesterday = new Date(Date.now() - 86400000).toDateString();
+        if (S.stats.lastDate === yesterday && S.stats.completed > 0) {
+            // 昨天有完成休息，连续天数+1
+        } else if (S.stats.lastDate !== today) {
+            // 断了
+            S.stats.streak = 0;
+        }
+        S.stats.reminders = 0;
+        S.stats.completed = 0;
+        S.stats.totalActivities = 0;
+        S.stats.breakLog = [];
+        S.stats.skipped = 0;
+        S.stats.todayDate = today;
+    }
+    S.stats.lastDate = today;
+    localStorage.setItem('sitReminderStats', JSON.stringify(S.stats));
+}
+
+function loadStats() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('sitReminderStats'));
+        if (saved) {
+            const today = new Date().toDateString();
+            if (saved.todayDate === today) {
+                S.stats = { ...S.stats, ...saved };
+                // Ensure new fields have defaults if missing from old saved data
+                S.stats.totalActivities = saved.totalActivities || 0;
+                S.stats.breakLog = saved.breakLog || [];
+            } else {
+                // 检查连续天数
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                if (saved.lastDate === yesterday && saved.completed > 0) {
+                    S.stats.streak = (saved.streak || 0) + 1;
+                } else {
+                    S.stats.streak = 0;
+                }
+                S.stats.todayDate = today;
+                S.stats.lastDate = saved.lastDate || '';
+            }
+        }
+    } catch(e) {}
+}
+
+function resetTodayStats() {
+    S.stats.reminders = 0;
+    S.stats.completed = 0;
+    S.stats.totalActivities = 0;
+    S.stats.breakLog = [];
+    S.stats.skipped = 0;
+    saveStats();
+    updateStatsUI();
+    updateBreakLogUI();
+    updateSkipStatUI();
+    showToast('今日统计已重置');
+}
+
+// ==================== 设置 ====================
+function saveSettings() {
+    S.soundEnabled = document.getElementById('setSound').checked;
+    S.notifEnabled = document.getElementById('setNotif').checked;
+    S.eyeCareEnabled = document.getElementById('setEyeCare').checked;
+    S.darkMode = document.getElementById('setDark').checked;
+    S.autoStart = document.getElementById('setAutoStart').checked;
+
+    if (S.eyeCareEnabled) startEyeCareTimer();
+    else if (S.eyeTipTimer) { clearInterval(S.eyeTipTimer); S.eyeTipTimer = null; }
+
+    localStorage.setItem('sitReminderSettings', JSON.stringify({
+        soundEnabled: S.soundEnabled,
+        notifEnabled: S.notifEnabled,
+        eyeCareEnabled: S.eyeCareEnabled,
+        darkMode: S.darkMode,
+        autoStart: S.autoStart,
+    }));
+}
+
+function loadSettings() {
+    try {
+        const saved = JSON.parse(localStorage.getItem('sitReminderSettings'));
+        if (saved) {
+            S.soundEnabled = saved.soundEnabled ?? false;
+            S.notifEnabled = saved.notifEnabled ?? true;
+            S.eyeCareEnabled = saved.eyeCareEnabled ?? false;
+            S.darkMode = saved.darkMode ?? null;
+            S.autoStart = saved.autoStart ?? false;
+
+            document.getElementById('setSound').checked = S.soundEnabled;
+            document.getElementById('setNotif').checked = S.notifEnabled;
+            document.getElementById('setEyeCare').checked = S.eyeCareEnabled;
+            document.getElementById('setDark').checked = S.darkMode === true;
+            document.getElementById('setAutoStart').checked = S.autoStart;
+        }
+    } catch(e) {}
+}
+
+function openSettings() {
+    document.getElementById('settingsOverlay').classList.add('open');
+    document.getElementById('settingsDrawer').classList.add('open');
+}
+
+function closeSettings() {
+    document.getElementById('settingsOverlay').classList.remove('open');
+    document.getElementById('settingsDrawer').classList.remove('open');
+}
+
+// ==================== 主题 ====================
+function applyTheme() {
+    let isDark;
+    if (S.darkMode === true) {
+        isDark = true;
+    } else if (S.darkMode === false) {
+        isDark = false;
+    } else {
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    document.getElementById('btnTheme').innerHTML = isDark
+        ? '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+        : '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+}
+
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    S.darkMode = !isDark;
+    document.getElementById('setDark').checked = S.darkMode;
+    applyTheme();
+    saveSettings();
+}
+
+// 监听系统主题变化
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (S.darkMode === null) applyTheme();
+});
+
+// ==================== Toast ====================
+function showToast(msg) {
+    const wrap = document.getElementById('toastWrap');
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = msg;
+    wrap.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        toast.style.transition = 'all 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 2500);
+}
+
+// ==================== 启动 ====================
+init();
+</script>
+
+</body>
+</html>

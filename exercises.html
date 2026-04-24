@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>运动说明 · 起身动动</title>
+    <style>
+        :root {
+            --primary: #7d9e8c;
+            --primary-hover: #5d8470;
+            --primary-subtle: #f5f7f2;
+            --primary-muted: #a8c4b5;
+            --accent: #d4a574;
+            --accent-subtle: #faf6f0;
+            --bg: #f8f5f0;
+            --bg-elevated: #fffdf9;
+            --bg-sunken: #f0ebe4;
+            --text: #3d3a36;
+            --text-secondary: #6b665e;
+            --text-tertiary: #9e968c;
+            --border: #e5dfd6;
+            --border-subtle: #f0ebe4;
+            --shadow-sm: 0 1px 3px rgba(60,50,40,0.05), 0 1px 2px rgba(60,50,40,0.03);
+            --shadow-md: 0 4px 6px -1px rgba(60,50,40,0.06), 0 2px 4px -2px rgba(60,50,40,0.04);
+            --r-xs: 8px;
+            --r-sm: 12px;
+            --r-md: 16px;
+            --r-lg: 20px;
+            --r-full: 9999px;
+            --sp-2: 8px;
+            --sp-3: 12px;
+            --sp-4: 16px;
+            --sp-6: 24px;
+            --sp-10: 40px;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --duration-fast: 150ms;
+            --duration-normal: 250ms;
+        }
+        [data-theme="dark"] {
+            --primary: #8fb3a0;
+            --primary-hover: #7d9e8c;
+            --primary-subtle: #1a2420;
+            --primary-muted: #4a6b5a;
+            --accent: #d4a574;
+            --accent-subtle: #1f1810;
+            --bg: #1a1816;
+            --bg-elevated: #242220;
+            --bg-sunken: #121110;
+            --text: #e8e4df;
+            --text-secondary: #a8a29a;
+            --text-tertiary: #6b665e;
+            --border: #3a3632;
+            --border-subtle: #2a2826;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.25), 0 1px 2px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.3), 0 2px 4px -2px rgba(0,0,0,0.2);
+        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.5;
+            transition: background var(--duration-normal) var(--ease), color var(--duration-normal) var(--ease);
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            padding: var(--sp-4) var(--sp-4) var(--sp-10);
+        }
+
+        /* 顶部导航 */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            margin-bottom: var(--sp-6);
+        }
+        .back-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-full);
+            border: 1.5px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--duration-fast) var(--ease);
+            text-decoration: none;
+        }
+        .back-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: var(--primary-subtle);
+        }
+        .page-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+        }
+
+        /* 分类标签 */
+        .category-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: var(--sp-3);
+            margin-top: var(--sp-6);
+            display: flex;
+            align-items: center;
+            gap: var(--sp-2);
+        }
+        .category-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border-subtle);
+        }
+        .category-label:first-of-type { margin-top: 0; }
+
+        /* 运动卡片 */
+        .exercise-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--r-md);
+            padding: var(--sp-4);
+            margin-bottom: var(--sp-3);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--duration-fast) var(--ease);
+        }
+        .exercise-card:hover {
+            box-shadow: var(--shadow-md);
+            border-color: var(--border);
+        }
+        .exercise-card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--sp-3);
+            margin-bottom: var(--sp-2);
+        }
+        .exercise-num {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--r-full);
+            background: var(--primary-subtle);
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .exercise-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .exercise-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            padding-left: 40px;
+        }
+
+        /* 底部提示 */
+        .footer-tip {
+            text-align: center;
+            margin-top: var(--sp-10);
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="top-bar">
+            <a class="back-btn" href="sit-reminder.html">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </a>
+            <div class="page-title">运动说明</div>
+        </div>
+
+        <div class="category-label">上半身 · 肩颈手臂</div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">1</div>
+                <div class="exercise-name">靠墙天使</div>
+            </div>
+            <div class="exercise-desc">背靠墙壁，双臂贴墙缓缓上下滑动，重复5次，感受肩胛骨的收拢与展开。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">2</div>
+                <div class="exercise-name">坐姿脊椎扭转</div>
+            </div>
+            <div class="exercise-desc">右手扶左膝外侧，身体向左后方扭转，保持5个呼吸，然后换另一侧。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">3</div>
+                <div class="exercise-name">颈部环绕</div>
+            </div>
+            <div class="exercise-desc">缓慢顺时针转动头部一整圈，再逆时针一整圈，各重复3次，动作要慢。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">4</div>
+                <div class="exercise-name">肩部环绕</div>
+            </div>
+            <div class="exercise-desc">双肩同时向前画圆10次，再向后画圆10次，感受肩颈的放松。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">5</div>
+                <div class="exercise-name">手腕旋转</div>
+            </div>
+            <div class="exercise-desc">双手十指交叉，顺时针旋转手腕10圈，再逆时针10圈，缓解打字疲劳。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">6</div>
+                <div class="exercise-name">手臂交叉伸展</div>
+            </div>
+            <div class="exercise-desc">右臂伸直跨过胸前，左手肘内侧轻压，保持15秒后换另一侧。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">7</div>
+                <div class="exercise-name">扩胸运动</div>
+            </div>
+            <div class="exercise-desc">双手屈肘在胸前合拢，然后用力向两侧打开，重复15次，改善含胸驼背。</div>
+        </div>
+
+        <div class="category-label">全身 · 站立拉伸</div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">8</div>
+                <div class="exercise-name">站立猫牛式</div>
+            </div>
+            <div class="exercise-desc">双手扶桌，双脚后退一步。吸气抬头塌腰，呼气低头拱背，重复8次。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">9</div>
+                <div class="exercise-name">踮脚站立</div>
+            </div>
+            <div class="exercise-desc">站起身，双脚并拢，缓慢踮起脚尖保持3秒再放下，重复15次。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">10</div>
+                <div class="exercise-name">站立侧弯</div>
+            </div>
+            <div class="exercise-desc">双手举过头顶，身体缓慢向右侧弯曲，保持5秒后换另一侧，各5次。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">11</div>
+                <div class="exercise-name">椅子俯卧撑</div>
+            </div>
+            <div class="exercise-desc">双手撑在椅子边缘，身体保持笔直，做10个俯卧撑，锻炼上肢力量。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">12</div>
+                <div class="exercise-name">深蹲</div>
+            </div>
+            <div class="exercise-desc">双脚与肩同宽，缓慢下蹲至大腿与地面平行，重复10次。</div>
+        </div>
+
+        <div class="category-label">坐姿 · 腿部脚踝</div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">13</div>
+                <div class="exercise-name">坐姿抬腿</div>
+            </div>
+            <div class="exercise-desc">坐在椅子上，双腿交替伸直抬起，每侧保持3秒，重复10次。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">14</div>
+                <div class="exercise-name">坐姿前屈</div>
+            </div>
+            <div class="exercise-desc">双脚平放，身体缓慢向前弯曲，双手尽量触碰脚尖，保持15秒。</div>
+        </div>
+
+        <div class="exercise-card">
+            <div class="exercise-card-header">
+                <div class="exercise-num">15</div>
+                <div class="exercise-name">脚踝旋转</div>
+            </div>
+            <div class="exercise-desc">抬起一只脚，顺时针旋转脚踝10圈，再逆时针10圈，然后换另一只脚。</div>
+        </div>
+
+        <div class="footer-tip">每个动作保持自然呼吸，不要勉强用力</div>
+    </div>
+
+    <script>
+        // 跟随主页面主题
+        try {
+            const saved = JSON.parse(localStorage.getItem('sitReminderSettings'));
+            if (saved && saved.darkMode === true) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else if (saved && saved.darkMode === false) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            }
+        } catch(e) {}
+    </script>
+</body>
+</html>
